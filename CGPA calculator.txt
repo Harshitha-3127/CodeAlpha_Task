@@ -1,0 +1,75 @@
+CGPA CALCULATOR
+
+S#include <iostream>
+#include <vector>
+#include <iomanip>
+using namespace std;
+
+int main() {
+    int numCourses;
+    float grade, credit;
+    float totalCredits = 0, totalGradePoints = 0;
+
+    cout << "Enter the number of courses: ";
+    cin >> numCourses;
+
+    // Vectors to store individual course details
+    vector<float> grades(numCourses);
+    vector<float> credits(numCourses);
+
+    // Input grades and credit hours for each course
+    for (int i = 0; i < numCourses; ++i) {
+        cout << "\nCourse " << i + 1 << ":\n";
+        cout << "Enter grade (on a 10.0 scale): ";
+        cin >> grade;
+        cout << "Enter credit hours: ";
+        cin >> credit;
+
+        grades[i] = grade;
+        credits[i] = credit;
+
+        totalCredits += credit;
+        totalGradePoints += (grade * credit);
+    }
+
+    // Calculate GPA and CGPA
+    float gpa = totalGradePoints / totalCredits;
+
+    // Display course-wise details
+    cout << fixed << setprecision(2);
+    cout << "\n--- Course Details ---\n";
+    for (int i = 0; i < numCourses; ++i) {
+        cout << "Course " << i + 1 << ": Grade = " << grades[i]
+             << ", Credit Hours = " << credits[i] << endl;
+    }
+
+    cout << "\nTotal Credits: " << totalCredits << endl;
+    cout << "Total Grade Points: " << totalGradePoints << endl;
+    cout << "Semester GPA / CGPA: " << gpa << endl;
+
+    return 0;
+}
+
+OUTPUT:
+Enter the number of courses: 3
+
+Course 1:
+Enter grade (on a 10.0 scale): 8.5
+Enter credit hours: 4
+
+Course 2:
+Enter grade (on a 10.0 scale): 9.0
+Enter credit hours: 3
+
+Course 3:
+Enter grade (on a 10.0 scale): 7.5
+Enter credit hours: 2
+
+--- Course Details ---
+Course 1: Grade = 8.50, Credit Hours = 4.00
+Course 2: Grade = 9.00, Credit Hours = 3.00
+Course 3: Grade = 7.50, Credit Hours = 2.00
+
+Total Credits: 9.00
+Total Grade Points: 77.50
+Semester GPA / CGPA: 8.61

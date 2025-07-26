@@ -1,0 +1,278 @@
+BANKING SYSTEM
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <iomanip>
+using namespace std;
+
+// Transaction class
+class Transaction {
+public:
+    string type;
+    double amount;
+    string targetAccount;
+    
+    Transaction(string type, double amount, string targetAccount = "")
+        : type(type), amount(amount), targetAccount(targetAccount) {}
+    
+    void display() const {
+        cout << setw(10) << type 
+             << " | " << setw(8) << amount 
+             << " | " << (targetAccount.empty() ? "-" : targetAccount) << endl;
+    }
+};
+
+// Customer class
+class Customer {
+public:
+    string name;
+    string id;
+
+    Customer(string name, string id) : name(name), id(id) {}
+};
+
+// Account class
+class Account {
+private:
+    string accountNumber;
+    Customer* owner;
+    double balance;
+    vector<Transaction> transactions;
+
+public:
+    Account(string accNo, Customer* cust) 
+        : accountNumber(accNo), owner(cust), balance(0.0) {}
+
+    string getAccountNumber() const { return accountNumber; }
+    double getBalance() const { return balance; }
+
+    void deposit(double amount) {
+        if (amount <= 0) {
+            cout << "❌ Invalid amount.\n";
+            return;
+        }
+        balance += amount;
+        transactions.emplace_back("Deposit", amount);
+        cout << "✅ Deposited ₹" << amount << ". New Balance: ₹" << balance << endl;
+    }
+
+    void withdraw(double amount) {
+        if (amount <= 0 || amount > balance) {
+            cout << "❌ Invalid or insufficient balance.\n";
+            return;
+        }
+        balance -= amount;
+        transactions.emplace_back("Withdraw", amount);
+        cout << "✅ Withdrawn ₹" << amount << ". New Balance: ₹" << balance << endl;
+    }
+
+    void transfer(Account& toAccount, double amount) {
+        if (amount <= 0 || amount > balance) {
+            cout << "❌ Transfer failed: Insufficient balance.\n";
+            return;
+        }
+        balance -= amount;
+        toAccount.balance += amount;
+        transactions.emplace_back("TransferTo", amount, toAccount.accountNumber);
+        toAccount.transactions.emplace_back("ReceivedFrom", amount, accountNumber);
+        cout << "✅ ₹" << amount << " transferred to " << toAccount.accountNumber << endl;
+    }
+
+    void showInfo() const {
+        cout << "\n--- Account Information ---\n";
+        cout << "Customer Name : " << owner->name << endl;
+        cout << "Customer ID   : " << owner->id << endl;
+        cout << "Account Number: " << accountNumber << endl;
+        cout << fixed << setprecision(2);
+        cout << "Balance       : ₹" << balance << endl;
+    }
+
+    void showTransactions() const {
+        cout << "\n--- Recent Transactions ---\n";
+        cout << "Type       | Amount   | Target\n";
+        cout << "-------------------------------\n";
+        for (const auto& t : transactions) {
+            t.display();
+        }
+        if (transactions.empty()) {
+            cout << "No transactions found.\n";
+        }
+    }
+};
+
+// Helper function to find an account by account number
+Account* findAccount(vector<Account*>& accounts, const string& accNo) {
+    for (auto acc : accounts) {
+        if (acc->getAccountNumber() == accNo)
+            return acc;
+    }
+    return nullptr;
+}
+
+// Main program
+int main() {
+    vector<Customer*> customers;
+    vector<Account*> accounts;
+
+    int choice;
+    string name, id, accNo, targetAcc;
+    double amount;
+
+    do {
+        cout << "\n=== Banking System ===\n";
+        cout << "1. Create Customer & Account\n";
+        cout << "2. Deposit\n";
+        cout << "3. Withdraw\n";
+        cout << "4. Transfer\n";
+        cout << "5. View Account Info\n";
+        cout << "6. View Transactions\n";
+        cout << "7. Exit\n";
+        cout << "Enter choice: ";
+        cin >> choice;
+
+        switch (choice) {
+            case 1: {
+                cout << "Enter customer name: ";
+                cin >> name;
+                cout << "Enter customer ID: ";
+                cin >> id;
+                cout << "Enter account number: ";
+                cin >> accNo;
+
+                if (findAccount(accounts, accNo)) {
+                    cout << "❌ Account already exists.\n";
+                    break;
+                }
+
+                Customer* cust = new Customer(name, id);
+                Account* acc = new Account(accNo, cust);
+                customers.push_back(cust);
+                accounts.push_back(acc);
+                cout << "✅ Account created successfully!\n";
+                break;
+            }
+
+            case 2: {
+                cout << "Enter account number: ";
+                cin >> accNo;
+                Account* acc = findAccount(accounts, accNo);
+                if (!acc) {
+                    cout << "❌ Account not found.\n";
+                    break;
+                }
+                cout << "Enter amount to deposit: ₹";
+                cin >> amount;
+                acc->deposit(amount);
+                break;
+            }
+
+            case 3: {
+                cout << "Enter account number: ";
+                cin >> accNo;
+                Account* acc = findAccount(accounts, accNo);
+                if (!acc) {
+                    cout << "❌ Account not found.\n";
+                    break;
+                }
+                cout << "Enter amount to withdraw: ₹";
+                cin >> amount;
+                acc->withdraw(amount);
+                break;
+            }
+
+            case 4: {
+                cout << "Enter your account number: ";
+                cin >> accNo;
+                Account* fromAcc = findAccount(accounts, accNo);
+                if (!fromAcc) {
+                    cout << "❌ Source account not found.\n";
+                    break;
+                }
+                cout << "Enter target account number: ";
+                cin >> targetAcc;
+                Account* toAcc = findAccount(accounts, targetAcc);
+                if (!toAcc) {
+                    cout << "❌ Target account not found.\n";
+                    break;
+                }
+                cout << "Enter amount to transfer: ₹";
+                cin >> amount;
+                fromAcc->transfer(*toAcc, amount);
+                break;
+            }
+
+            case 5: {
+                cout << "Enter account number: ";
+                cin >> accNo;
+                Account* acc = findAccount(accounts, accNo);
+                if (!acc) {
+                    cout << "❌ Account not found.\n";
+                    break;
+                }
+                acc->showInfo();
+                break;
+            }
+
+            case 6: {
+                cout << "Enter account number: ";
+                cin >> accNo;
+                Account* acc = findAccount(accounts, accNo);
+                if (!acc) {
+                    cout << "❌ Account not found.\n";
+                    break;
+                }
+                acc->showTransactions();
+                break;
+            }
+
+            case 7:
+                cout << "👋 Exiting the system...\n";
+                break;
+
+            default:
+                cout << "❌ Invalid option. Try again.\n";
+                break;
+        }
+    } while (choice != 7);
+
+    // Cleanup dynamic memory
+    for (auto c : customers) delete c;
+    for (auto a : accounts) delete a;
+
+    return 0;
+}
+
+SAMPLE OUTPUT
+
+=== Banking System ===
+1. Create Customer & Account
+Enter customer name: Harshitha
+Enter customer ID: C101
+Enter account number: A1001
+✅ Account created successfully!
+
+2. Deposit
+Enter account number: A1001
+Enter amount to deposit: ₹5000
+✅ Deposited ₹5000. New Balance: ₹5000.00
+
+3. Withdraw
+Enter account number: A1001
+Enter amount to withdraw: ₹1000
+✅ Withdrawn ₹1000. New Balance: ₹4000.00
+
+5. View Account Info
+--- Account Information ---
+Customer Name : Harshitha
+Customer ID   : C101
+Account Number: A1001
+Balance       : ₹4000.00
+
+6. View Transactions
+--- Recent Transactions ---
+Type       | Amount   | Target
+-------------------------------
+Deposit    |   5000.00 | -
+Withdraw   |   1000.00 | -
+
